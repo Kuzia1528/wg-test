@@ -1,0 +1,43 @@
+version: '3.5'
+ 
+services:
+    # PHP fpm
+    application-backend:
+        build:
+            context: ./
+            dockerfile: ./dockerfile
+        restart: always
+        tty: true
+        working_dir: /var/www/application
+        volumes:
+            - .:/var/www/application
+        container_name: application-backend
+ 
+    # Nginx Service
+    application-nginx:
+        image: nginx:alpine
+        container_name: application-nginx
+        restart: always
+        tty: true
+        environment:
+            - "APPLICATION_UPSTREAM=application-backend:9000"
+        volumes:
+            - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
+            - ./docker/nginx/templates/:/etc/nginx/templates/
+            - ./web/:/var/www/application/web
+        ports:
+            - "80:80"
+            - "443:443"
+ 
+    # Postgres Service
+    application-postgres:
+        image: postgres:16.4-alpine3.20
+        container_name: application-postgres
+        restart: always
+        tty: true
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_DB: "appdb"
+            POSTGRES_USER: "admin"
+            POSTGRES_PASSWORD: "111111"
